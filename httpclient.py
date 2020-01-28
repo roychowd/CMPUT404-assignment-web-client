@@ -32,6 +32,8 @@ class HTTPResponse(object):
         self.code = code
         self.body = body
 
+        print(code, body)
+
 class HTTPClient(object):
     #def get_host_port(self,url):
 
@@ -41,7 +43,9 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        print("**CODE***")
+        code =data.split()
+        return int(code[1])
 
     def get_headers(self,data):
         return None
@@ -68,7 +72,28 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        code = 500
+        print("***GET***", url, args)
+        try:
+            newurl = urllib.parse.urlparse(url)
+        except:
+            pass
+        # print(newurl, newurl.hostname)
+        # print(newurl.path)
+        self.connect(newurl.hostname, newurl.port)
+
+        httpmessage = "GET {path} HTTP/1.1 \r\nHOST: {hostname}\r\nAccept:  */*\r\nConnection: Close \r\n\r\n".format(path=newurl.path, hostname=newurl.hostname)
+        print(httpmessage)
+        self.sendall(httpmessage)
+        recvalue = self.recvall(self.socket)
+        # print(recvalue)
+
+
+        try:
+            code = int(self.get_code(recvalue))
+        except:
+            code = 500
+        # print(code)
+        print("before 500000")
         body = ""
         return HTTPResponse(code, body)
 
