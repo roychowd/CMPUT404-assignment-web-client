@@ -31,8 +31,8 @@ class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
+        print(self.body, self.code)
 
-        print(code, body)
 
 class HTTPClient(object):
     #def get_host_port(self,url):
@@ -43,7 +43,6 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        print("**CODE***")
         code =data.split()
         return int(code[1])
 
@@ -51,7 +50,7 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
-        return None
+        return data.split("\r\n\r\n")[1]
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -72,32 +71,57 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        print("***GET***", url, args)
-        try:
+        # print("*********URL", url)
+        # add http:// to software process 
+        # if "http://" not in url: 
+        #     url = "http://" + url
+        #     print("URL CHANGED , ", url)
+        try: 
             newurl = urllib.parse.urlparse(url)
-        except:
-            pass
-        # print(newurl, newurl.hostname)
-        # print(newurl.path)
-        self.connect(newurl.hostname, newurl.port)
+            print(newurl.hostname, newurl.port)
+            port = newurl.port
+            host = newurl.hostname
+            # if "softwareprocess" in url:
+            #     path = "http://" + newurl.hostname 
+            # else:
+            #     host = newurl.hostname
+            # path = newurl.path
+        except Exception: 
+            sys.exit()
+        # default port
 
-        httpmessage = "GET {path} HTTP/1.1 \r\nHOST: {hostname}\r\nAccept:  */*\r\nConnection: Close \r\n\r\n".format(path=newurl.path, hostname=newurl.hostname)
-        print(httpmessage)
+        if port == None: 
+            port = 80
+        httpmessage = "GET {path} HTTP/1.1 \r\nHost: {hostname}\r\nAccept:  */*\r\nConnection: Close\r\n\r\n".format(path=newurl.path, hostname=newurl.hostname)
+        print( host, port, "\n httpmessage: ", httpmessage)
+        self.connect(host, port)
         self.sendall(httpmessage)
         recvalue = self.recvall(self.socket)
-        # print(recvalue)
-
-
         try:
             code = int(self.get_code(recvalue))
         except:
             code = 500
-        # print(code)
-        print("before 500000")
-        body = ""
+        # code = 500
+        body = self.get_body(recvalue)
+        print("***********CODE: " , code, "************BODY: \n", body , "\n ***END TRANSMISSION")
+        self.close()
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
+        newurl = urllib.parse.urlparse(url)
+        print(newurl)
+        host = newurl.hostname
+        path = newurl.path
+      
+        if (args):
+            contentlength=len(args)
+        else: 
+            args = ""
+            contentlength = 0
+        httpmessage = 'POST {path} HTTP/1.1\r\nHost: {host}\r\nACCEPT: */*\r\nContent-Length: {contentlength}\r\nContent-Type: application/x-www-form-urlencoded;charset=utf-8\r\nConnection: Close\r\n\r\n'.format(path=path, host=host, contentlength=contentlength)
+        httpmessage += str(args)
+        print(httpmessage)
+  
         code = 500
         body = ""
         return HTTPResponse(code, body)
