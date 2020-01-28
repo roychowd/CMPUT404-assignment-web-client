@@ -98,21 +98,18 @@ class HTTPClient(object):
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        print("******POST: url," ,url)
         newurl = urllib.parse.urlparse(url)
-        print(newurl)
         host = newurl.hostname
         path = newurl.path
         port = newurl.port
       
         if (args):
-            contentlength=len(args)
             args = urllib.parse.urlencode(args)
+            contentlength=len(args)
         else: 
             args = ""
             contentlength = 0
         httpmessage = 'POST {path} HTTP/1.1\r\nHost: {host}\r\nACCEPT: */*\r\nContent-Length: {contentlength}\r\nContent-Type: application/x-www-form-urlencoded\r\nConnection: Close\r\n\r\n'.format(path=path, host=host, contentlength=contentlength)
-
         httpmessage+=args
         print(httpmessage)
         # httpmessage.encode("utf-8")
@@ -121,7 +118,6 @@ class HTTPClient(object):
         self.connect(host,port)
         self.sendall(httpmessage)
         recvalue = self.recvall(self.socket)
-        print("*************RECIEVED: *****",recvalue, "**** END")
         try:
             code = int(self.get_code(recvalue))
         except:
