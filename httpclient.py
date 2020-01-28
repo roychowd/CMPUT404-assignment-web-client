@@ -24,6 +24,7 @@ import re
 # you may use urllib to encode data appropriately
 import urllib.parse
 
+
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
 
@@ -72,17 +73,17 @@ class HTTPClient(object):
 
     def GET(self, url, args=None):
         newurl = urllib.parse.urlparse(url)
-        print(newurl.hostname, newurl.port)
+        # print(newurl.hostname, newurl.port)
         port = newurl.port
         host = newurl.hostname
         path = newurl.path  
         if port == None: 
             port = 80
-        print("PATH " ,newurl.path)
+        # print("PATH " ,newurl.path)
         if path is "":
             path = "/"
         httpmessage = "GET {path} HTTP/1.1\r\nHost: {hostname}\r\nAccept:  */*\r\nConnection: Close\r\n\r\n".format(path=path, hostname=newurl.hostname)
-        print("HOST, PORT",  host, port, "\nhttpmessage:\n", httpmessage)
+        # print("HOST, PORT",  host, port, "\nhttpmessage:\n", httpmessage)
         self.connect(host, port)
         self.sendall(httpmessage)
         recvalue = self.recvall(self.socket)
@@ -97,22 +98,36 @@ class HTTPClient(object):
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
+        print("******POST: url," ,url)
         newurl = urllib.parse.urlparse(url)
         print(newurl)
         host = newurl.hostname
         path = newurl.path
+        port = newurl.port
       
         if (args):
             contentlength=len(args)
+            args = urllib.parse.urlencode(args)
         else: 
             args = ""
             contentlength = 0
-        httpmessage = 'POST {path} HTTP/1.1\r\nHost: {host}\r\nACCEPT: */*\r\nContent-Length: {contentlength}\r\nContent-Type: application/x-www-form-urlencoded;charset=utf-8\r\nConnection: Close\r\n\r\n'.format(path=path, host=host, contentlength=contentlength)
-        httpmessage += str(args)
+        httpmessage = 'POST {path} HTTP/1.1\r\nHost: {host}\r\nACCEPT: */*\r\nContent-Length: {contentlength}\r\nContent-Type: application/x-www-form-urlencoded\r\nConnection: Close\r\n\r\n'.format(path=path, host=host, contentlength=contentlength)
+
+        httpmessage+=args
         print(httpmessage)
-  
-        code = 500
-        body = ""
+        # httpmessage.encode("utf-8")
+        if port == None:
+            port = 80
+        self.connect(host,port)
+        self.sendall(httpmessage)
+        recvalue = self.recvall(self.socket)
+        print("*************RECIEVED: *****",recvalue, "**** END")
+        try:
+            code = int(self.get_code(recvalue))
+        except:
+            code = 500
+        body = self.get_body(recvalue)
+        self.close()
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
