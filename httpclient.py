@@ -71,29 +71,18 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        # print("*********URL", url)
-        # add http:// to software process 
-        # if "http://" not in url: 
-        #     url = "http://" + url
-        #     print("URL CHANGED , ", url)
-        try: 
-            newurl = urllib.parse.urlparse(url)
-            print(newurl.hostname, newurl.port)
-            port = newurl.port
-            host = newurl.hostname
-            # if "softwareprocess" in url:
-            #     path = "http://" + newurl.hostname 
-            # else:
-            #     host = newurl.hostname
-            # path = newurl.path
-        except Exception: 
-            sys.exit()
-        # default port
-
+        newurl = urllib.parse.urlparse(url)
+        print(newurl.hostname, newurl.port)
+        port = newurl.port
+        host = newurl.hostname
+        path = newurl.path  
         if port == None: 
             port = 80
-        httpmessage = "GET {path} HTTP/1.1 \r\nHost: {hostname}\r\nAccept:  */*\r\nConnection: Close\r\n\r\n".format(path=newurl.path, hostname=newurl.hostname)
-        print( host, port, "\n httpmessage: ", httpmessage)
+        print("PATH " ,newurl.path)
+        if path is "":
+            path = "/"
+        httpmessage = "GET {path} HTTP/1.1\r\nHost: {hostname}\r\nAccept:  */*\r\nConnection: Close\r\n\r\n".format(path=path, hostname=newurl.hostname)
+        print("HOST, PORT",  host, port, "\nhttpmessage:\n", httpmessage)
         self.connect(host, port)
         self.sendall(httpmessage)
         recvalue = self.recvall(self.socket)
@@ -103,7 +92,7 @@ class HTTPClient(object):
             code = 500
         # code = 500
         body = self.get_body(recvalue)
-        print("***********CODE: " , code, "************BODY: \n", body , "\n ***END TRANSMISSION")
+        # print("***********CODE: " , code, "************BODY: \n", body , "\n ***END TRANSMISSION")
         self.close()
         return HTTPResponse(code, body)
 
